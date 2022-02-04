@@ -145,7 +145,6 @@
     "org.apache.flink.sql.parser.type.ExtendedSqlCollectionTypeNameSpec"
     "org.apache.flink.sql.parser.type.ExtendedSqlRowTypeNameSpec"
     "org.apache.flink.sql.parser.type.SqlMapTypeNameSpec"
-    "org.apache.flink.sql.parser.type.SqlRawTypeNameSpec"
     "org.apache.flink.sql.parser.type.SqlTimestampLtzTypeNameSpec"
     "org.apache.flink.sql.parser.utils.ParserResource"
     "org.apache.flink.sql.parser.validate.FlinkSqlConformance"
@@ -207,7 +206,6 @@
     "PLAN_ADVICE"
     "PROCEDURES"
     "PYTHON"
-    "RAW"
     "REFRESH_MODE"
     "REMOVE"
     "RENAME"
@@ -652,7 +650,6 @@
     "ExtendedSqlBasicTypeName()"
     "CustomizedCollectionsTypeName()"
     "SqlMapTypeName()"
-    "SqlRawTypeName()"
     "ExtendedSqlRowTypeName()"
   ]
 
