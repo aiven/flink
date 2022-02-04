@@ -1205,24 +1205,6 @@ SqlTypeNameSpec SqlMapTypeName() :
     }
 }
 
-/** Parses a SQL raw type such as {@code RAW('org.my.Class', 'sW3Djsds...')}. */
-SqlTypeNameSpec SqlRawTypeName() :
-{
-    SqlNode className;
-    SqlNode serializerString;
-}
-{
-    <RAW>
-    <LPAREN>
-    className = StringLiteral()
-    <COMMA>
-    serializerString = StringLiteral()
-    <RPAREN>
-    {
-        return new SqlRawTypeNameSpec(className, serializerString, getPos());
-    }
-}
-
 /**
 * Parse a "name1 type1 [ NULL | NOT NULL] [ comment ]
 * [, name2 type2 [ NULL | NOT NULL] [ comment ] ]* ..." list.
