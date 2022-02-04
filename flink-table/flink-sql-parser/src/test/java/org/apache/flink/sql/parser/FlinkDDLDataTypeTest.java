@@ -250,40 +250,6 @@ public class FlinkDDLDataTypeTest {
                                         Arrays.asList("f0", "f1"))),
                         "ROW< `f0` INTEGER NOT NULL 'This is a comment.', "
                                 + "`f1` BOOLEAN 'This as well.' >"),
-                createTestItem(
-                        "RAW(    '"
-                                + Fixture.RAW_TYPE_INT_CLASS
-                                + "'   ,   '"
-                                + Fixture.RAW_TYPE_INT_SERIALIZER_STRING
-                                + "'   )",
-                        nullable(FIXTURE.rawTypeOfInteger),
-                        "RAW('"
-                                + Fixture.RAW_TYPE_INT_CLASS
-                                + "', '"
-                                + Fixture.RAW_TYPE_INT_SERIALIZER_STRING
-                                + "')"),
-                createTestItem(
-                        "RAW('"
-                                + Fixture.RAW_TYPE_INT_CLASS
-                                + "', '"
-                                + Fixture.RAW_TYPE_INT_SERIALIZER_STRING
-                                + "') NOT NULL",
-                        FIXTURE.rawTypeOfInteger,
-                        "RAW('"
-                                + Fixture.RAW_TYPE_INT_CLASS
-                                + "', '"
-                                + Fixture.RAW_TYPE_INT_SERIALIZER_STRING
-                                + "') NOT NULL"),
-                createTestItem(
-                        "RAW('"
-                                + Fixture.RAW_TYPE_INT_CLASS
-                                + "', '"
-                                + Fixture.RAW_TYPE_INT_SERIALIZER_STRING.substring(0, 1)
-                                + "' '"
-                                + // test literal chain to split long string
-                                Fixture.RAW_TYPE_INT_SERIALIZER_STRING.substring(1)
-                                + "') NOT NULL",
-                        FIXTURE.rawTypeOfInteger),
 
                 // Test parse throws error.
                 createTestItem("TIMESTAMP WITH ^TIME^ ZONE", "(?s).*Encountered \"TIME\" at .*"),
@@ -301,25 +267,7 @@ public class FlinkDDLDataTypeTest {
                         "ROW< `f0` `MyType`, `f1` `c`.`d`.`t` >"),
                 createTestItem(
                         "^INTERVAL^ YEAR",
-                        "(?s).*Incorrect syntax near the keyword 'INTERVAL' at line 2, column 6..*"),
-                createTestItem(
-                        "RAW(^)^",
-                        "(?s).*Encountered \"\\)\" at line 2, column 10.\n.*"
-                                + "Was expecting one of:\n"
-                                + "    <BINARY_STRING_LITERAL> \\.\\.\\.\n"
-                                + "    <QUOTED_STRING> \\.\\.\\.\n"
-                                + "    <PREFIXED_STRING_LITERAL> \\.\\.\\.\n"
-                                + "    <UNICODE_STRING_LITERAL> \\.\\.\\.\n"
-                                + ".*"),
-                createTestItem(
-                        "RAW('java.lang.Integer', ^)^",
-                        "(?s).*Encountered \"\\)\" at line 2, column 31\\.\n"
-                                + "Was expecting one of:\n"
-                                + "    <BINARY_STRING_LITERAL> \\.\\.\\.\n"
-                                + "    <QUOTED_STRING> \\.\\.\\.\n"
-                                + "    <PREFIXED_STRING_LITERAL> \\.\\.\\.\n"
-                                + "    <UNICODE_STRING_LITERAL> \\.\\.\\.\n"
-                                + ".*"));
+                        "(?s).*Incorrect syntax near the keyword 'INTERVAL' at line 2, column 6..*"));
     }
 
     private static TestItem createTestItem(Object... args) {
