@@ -201,6 +201,15 @@ env.fromSource(kafkaSource, new CustomWatermarkStrategy(), "Kafka Source With Cu
 [This documentation]({{< ref "docs/dev/datastream/event-time/generating_watermarks.md" >}}) describes
 details about how to define a ```WatermarkStrategy```.
 
+### Idleness
+The Kafka Source does not go automatically in an idle state if the parallelism is higher than the
+number of partitions. You will either need to lower the parallelism or add an idle timeout to the 
+watermark strategy. If no records flow in a partition of a stream for that amount of time, then that 
+partition is considered "idle" and will not hold back the progress of watermarks in downstream operators.
+
+[This documentation]({{< ref "docs/dev/datastream/event-time/generating_watermarks.md" >}}#dealing-with-idle-sources) 
+describes details about how to define a ```WatermarkStrategy#withIdleness```.
+
 ### Consumer Offset Committing
 Kafka source commits the current consuming offset when checkpoints are **completed**, for 
 ensuring the consistency between Flink's checkpoint state and committed offsets on Kafka brokers. 
@@ -624,10 +633,19 @@ DataStream<String> stream = ...
 Properties properties = new Properties();
 properties.setProperty("bootstrap.servers", "localhost:9092");
 
+KafkaSerializationSchema<String> serializationSchema = new KafkaSerializationSchema<String>() {
+        @Override
+        public ProducerRecord<byte[], byte[]> serialize(String element, @Nullable Long timestamp) {
+            return new ProducerRecord<>(
+                    "my-topic", // target topic
+                    element.getBytes(StandardCharsets.UTF_8)); // record contents
+            }
+        };
+
 FlinkKafkaProducer<String> myProducer = new FlinkKafkaProducer<>(
-        "my-topic",                  // target topic
-        new SimpleStringSchema(),    // serialization schema
-        properties,                  // producer config
+        "my-topic",             // target topic
+        serializationSchema,    // serialization schema
+        properties,             // producer config
         FlinkKafkaProducer.Semantic.EXACTLY_ONCE); // fault-tolerance
 
 stream.addSink(myProducer);
@@ -640,9 +658,17 @@ val stream: DataStream[String] = ...
 val properties = new Properties
 properties.setProperty("bootstrap.servers", "localhost:9092")
 
+val serializationSchema = new KafkaSerializationSchema[String] {
+        override def serialize(element: String,
+                               timestamp: lang.Long): ProducerRecord[Array[Byte], Array[Byte]] =
+            new ProducerRecord[Array[Byte], Array[Byte]](
+                    "my-topic",      // target topic
+                    element.getBytes(StandardCharsets.UTF_8)) // record contents
+        }
+
 val myProducer = new FlinkKafkaProducer[String](
         "my-topic",                  // target topic
-        new SimpleStringSchema(),    // serialization schema
+        serializationSchema,         // serialization schema
         properties,                  // producer config
         FlinkKafkaProducer.Semantic.EXACTLY_ONCE) // fault-tolerance
 

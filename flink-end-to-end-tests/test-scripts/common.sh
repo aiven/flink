@@ -264,14 +264,23 @@ function wait_rest_endpoint_up {
   # wait at most 30 seconds until the endpoint is up
   local TIMEOUT=30
   for i in $(seq 1 ${TIMEOUT}); do
+    local log_file=$(mktemp)
     # without the || true this would exit our script if the endpoint is not yet up
-    QUERY_RESULT=$(curl ${CURL_SSL_ARGS} "$query_url" 2> /dev/null || true)
+    QUERY_RESULT=$(curl -v ${CURL_SSL_ARGS} "$query_url" 2> ${log_file} || true)
 
     # ensure the response adapts with the successful regex
     if [[ ${QUERY_RESULT} =~ ${successful_response_regex} ]]; then
       echo "${endpoint_name} REST endpoint is up."
       return
+    else
+      echo "***************** Curl detailed output *****************"
+      echo "QUERY_RESULT is ${QUERY_RESULT}"
+      cat ${log_file}
+      echo "********************************************************"
     fi
+
+    # Remove the temporary file
+    rm ${log_file}
 
     echo "Waiting for ${endpoint_name} REST endpoint to come up..."
     sleep 1
@@ -817,6 +826,27 @@ function retry_times_with_backoff_and_cleanup() {
     echo "Command: ${command} failed ${retriesNumber} times."
     ${cleanup_command}
     return 1
+}
+
+function retry_times_with_exponential_backoff {
+  local retries=$1
+  shift
+
+  local count=0
+  echo "Executing command:" "$@"
+  until "$@"; do
+    exit=$?
+    wait=$((2 ** $count))
+    count=$(($count + 1))
+    if [ $count -lt $retries ]; then
+      echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
+      sleep $wait
+    else
+      echo "Retry $count/$retries exited $exit, no more retries left."
+      return $exit
+    fi
+  done
+  return 0
 }
 
 JOB_ID_REGEX_EXTRACTOR=".*JobID ([0-9,a-f]*)"

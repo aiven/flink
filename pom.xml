@@ -28,7 +28,7 @@ under the License.
 
 	<groupId>org.apache.flink</groupId>
 	<artifactId>flink-parent</artifactId>
-	<version>1.13.5</version>
+	<version>1.13.6</version>
 
 	<name>Flink : </name>
 	<packaging>pom</packaging>
@@ -107,7 +107,7 @@ under the License.
 		<akka.version>2.5.21</akka.version>
 		<target.java.version>1.8</target.java.version>
 		<slf4j.version>1.7.15</slf4j.version>
-		<log4j.version>2.16.0</log4j.version>
+		<log4j.version>2.17.1</log4j.version>
 		<!-- Overwrite default values from parent pom.
 			 Intellij is (sometimes?) using those values to choose target language level
 			 and thus is changing back to java 1.6 on each maven re-import -->
@@ -135,7 +135,7 @@ under the License.
 		<beam.version>2.27.0</beam.version>
 		<protoc.version>3.11.1</protoc.version>
 		<arrow.version>0.16.0</arrow.version>
-		<testcontainers.version>1.16.0</testcontainers.version>
+		<testcontainers.version>1.16.2</testcontainers.version>
 		<japicmp.skip>false</japicmp.skip>
 		<flink.convergence.phase>validate</flink.convergence.phase>
 		<!--
@@ -168,7 +168,7 @@ under the License.
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>force-shading</artifactId>
-			<version>1.13.5</version>
+			<version>1.13.6</version>
 		</dependency>
 
 		<!-- Root dependencies for all projects -->
@@ -1598,7 +1598,7 @@ under the License.
 						<!--suppress MavenModelInspection -->
 						<test.randomization.seed>${test.randomization.seed}</test.randomization.seed>
 					</systemPropertyVariables>
-					<argLine>-Xms256m -Xmx2048m -Dmvn.forkNumber=${surefire.forkNumber} -XX:+UseG1GC</argLine>
+					<argLine>-Xms256m -Xmx2048m -Dmvn.forkNumber=${surefire.forkNumber} -XX:+UseG1GC -Duser.country=US -Duser.language=en</argLine>
 				</configuration>
 				<executions>
 					<!--execute all the unit tests-->
