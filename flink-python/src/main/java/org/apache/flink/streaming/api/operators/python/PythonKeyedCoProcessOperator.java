@@ -132,8 +132,7 @@ public class PythonKeyedCoProcessOperator<OUT>
                         internalTimerService,
                         this,
                         VoidNamespaceSerializer.INSTANCE,
-                        PythonTypeUtils.TypeInfoToSerializerConverter.typeInfoSerializerConverter(
-                                timerDataTypeInfo)),
+                        timerDataSerializer),
                 getContainingTask().getEnvironment().getMemoryManager(),
                 getOperatorConfig()
                         .getManagedMemoryFractionOperatorUseCaseOfSlot(

@@ -28,7 +28,7 @@ under the License.
 
 	<groupId>org.apache.flink</groupId>
 	<artifactId>flink-parent</artifactId>
-	<version>1.15.0</version>
+	<version>1.15.1</version>
 
 	<name>Flink : </name>
 	<packaging>pom</packaging>
@@ -48,6 +48,19 @@ under the License.
 		<connection>git@github.com:apache/flink.git</connection>
 		<developerConnection>scm:git:https://gitbox.apache.org/repos/asf/flink.git</developerConnection>
 	</scm>
+
+	<repositories>
+		<repository>
+			<id>repository.jboss.org</id>
+			<url>http://repository.jboss.org/nexus/content/groups/public/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</repository>
+	</repositories>
 
 	<modules>
 		<module>flink-annotations</module>
@@ -147,7 +160,7 @@ under the License.
 			to revisit the impact at that time.
 		-->
 		<minikdc.version>3.2.0</minikdc.version>
-		<hive.version>2.3.4</hive.version>
+		<hive.version>2.3.9</hive.version>
 		<hive-2.2.0-orc-version>1.4.3</hive-2.2.0-orc-version>
 		<orc.version>1.5.6</orc.version>
 		<!--
@@ -155,9 +168,30 @@ under the License.
 			For Hadoop 2.7, the minor Hadoop version supported for flink-shaded-hadoop-2-uber is 2.7.5
 		-->
 		<hivemetastore.hadoop.version>2.7.5</hivemetastore.hadoop.version>
-		<japicmp.referenceVersion>1.14.0</japicmp.referenceVersion>
+		<japicmp.referenceVersion>1.15.0</japicmp.referenceVersion>
 		<japicmp.outputDir>tools/japicmp-output</japicmp.outputDir>
-		<spotless.version>2.4.2</spotless.version>
+		<spotless.version>2.13.0</spotless.version>
+		<spotless.scalafmt.version>3.4.3</spotless.scalafmt.version>
+		<spotless.delimiter>package</spotless.delimiter>
+		<spotless.license.header>
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+		</spotless.license.header>
 
 		<!-- Can be set to any value to reproduce a specific build. -->
 		<test.randomization.seed/>
@@ -1069,13 +1103,6 @@ under the License.
 							</configuration>
 						</plugin>
 						<plugin>
-							<groupId>org.scalastyle</groupId>
-							<artifactId>scalastyle-maven-plugin</artifactId>
-							<configuration>
-								<skip>true</skip>
-							</configuration>
-						</plugin>
-						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-enforcer-plugin</artifactId>
 							<configuration>
@@ -1224,7 +1251,7 @@ under the License.
 							<execution>
 								<id>attach-sources</id>
 								<goals>
-									<goal>jar</goal>
+									<goal>jar-no-fork</goal>
 								</goals>
 							</execution>
 						</executions>
@@ -1526,7 +1553,6 @@ under the License.
 						<!-- Generated content -->
 						<exclude>out/**</exclude>
 						<exclude>**/target/**</exclude>
-						<exclude>**/scalastyle-output.xml</exclude>
 						<exclude>build-target/**</exclude>
 						<exclude>docs/layouts/shortcodes/generated/**</exclude>
 						<exclude>docs/static/generated/**</exclude>
@@ -2062,32 +2088,6 @@ under the License.
 					</executions>
 				</plugin>
 
-				<!-- configure scala style -->
-				<plugin>
-					<groupId>org.scalastyle</groupId>
-					<artifactId>scalastyle-maven-plugin</artifactId>
-					<version>1.0.0</version>
-					<executions>
-						<execution>
-							<phase>validate</phase>
-							<goals>
-								<goal>check</goal>
-							</goals>
-						</execution>
-					</executions>
-					<configuration>
-						<verbose>false</verbose>
-						<failOnViolation>true</failOnViolation>
-						<includeTestSourceDirectory>true</includeTestSourceDirectory>
-						<failOnWarning>false</failOnWarning>
-						<sourceDirectory>${basedir}/src/main/scala</sourceDirectory>
-						<testSourceDirectory>${basedir}/src/test/scala</testSourceDirectory>
-						<outputFile>${project.basedir}/target/scalastyle-output.xml</outputFile>
-						<inputEncoding>UTF-8</inputEncoding>
-						<outputEncoding>UTF-8</outputEncoding>
-					</configuration>
-				</plugin>
-
 				<!-- set scala maven plugin version -->
 				<plugin>
 					<groupId>net.alchim31.maven</groupId>
@@ -2129,11 +2129,10 @@ under the License.
 								<include>@org.apache.flink.annotation.Public</include>
 								<!-- The following line is un-commented by tools/releasing/update_japicmp_configuration.sh
 								 	as part of the release process -->
-								<!--<include>@org.apache.flink.annotation.PublicEvolving</include>-->
+								<include>@org.apache.flink.annotation.PublicEvolving</include>
 							</includes>
 							<excludes>
 								<exclude>@org.apache.flink.annotation.Experimental</exclude>
-								<exclude>@org.apache.flink.annotation.PublicEvolving</exclude>
 								<exclude>@org.apache.flink.annotation.Internal</exclude>
 								<exclude>org.apache.flink.streaming.api.datastream.DataStream#DataStream(org.apache.flink.streaming.api.environment.StreamExecutionEnvironment,org.apache.flink.streaming.api.transformations.StreamTransformation)</exclude>
 								<exclude>org.apache.flink.streaming.api.environment.LegacyLocalStreamEnvironment</exclude>
