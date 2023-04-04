@@ -125,6 +125,8 @@ public class ZooKeeperLeaderRetrievalDriver implements LeaderRetrievalDriver {
 
             final ChildData childData = cache.getCurrentData(connectionInformationPath);
 
+            LOG.debug("Leader node has changed, childData {}", childData);
+
             if (childData != null) {
                 final byte[] data = childData.getData();
                 if (data != null && data.length > 0) {
@@ -173,6 +175,7 @@ public class ZooKeeperLeaderRetrievalDriver implements LeaderRetrievalDriver {
     }
 
     private void notifyNoLeader() {
+        LOG.info("notifyNoLeader");
         leaderRetrievalEventHandler.notifyLeaderAddress(LeaderInformation.empty());
     }
 

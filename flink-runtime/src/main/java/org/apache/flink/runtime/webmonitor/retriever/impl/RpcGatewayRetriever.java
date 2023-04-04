@@ -26,6 +26,9 @@ import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.concurrent.FutureUtils;
 import org.apache.flink.util.concurrent.RetryStrategy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -39,6 +42,7 @@ import java.util.function.Function;
  */
 public class RpcGatewayRetriever<F extends Serializable, T extends FencedRpcGateway<F>>
         extends LeaderGatewayRetriever<T> {
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     private final RpcService rpcService;
     private final Class<T> gatewayType;
@@ -59,15 +63,37 @@ public class RpcGatewayRetriever<F extends Serializable, T extends FencedRpcGate
     @Override
     protected CompletableFuture<T> createGateway(
             CompletableFuture<Tuple2<String, UUID>> leaderFuture) {
-        return FutureUtils.retryWithDelay(
-                () ->
-                        leaderFuture.thenCompose(
-                                (Tuple2<String, UUID> addressLeaderTuple) ->
-                                        rpcService.connect(
-                                                addressLeaderTuple.f0,
-                                                fencingTokenMapper.apply(addressLeaderTuple.f1),
-                                                gatewayType)),
-                retryStrategy,
-                rpcService.getScheduledExecutor());
+        log.info("createGateway");
+        return FutureUtils.retryWithDelay(() -> leaderFuture.thenCompose((Tuple2<String, UUID> addressLeaderTuple) -> {
+            final UUID sessionID = addressLeaderTuple.f1;
+            final String address = addressLeaderTuple.f0;
+            final String type = gatewayType.getSimpleName();
+            log.info("Connecting to RpcGateway {} at {}@{}.",
+                    gatewayType.getSimpleName(),
+                    sessionID,
+                    address);
+            CompletableFuture<T> gatewayFuture = rpcService.connect(address,
+                    fencingTokenMapper.apply(sessionID),
+                    gatewayType);
+            gatewayFuture.handle((result, throwable) -> {
+                if (throwable == null) {
+                    log.info(
+                            "Connection to RpcGateway of {} at {}@{} established.",
+                            type,
+                            sessionID,
+                            address);
+                } else {
+                    log.info(
+                            "Connection couldn't be established to {} at {}@{}.",
+                            type,
+                            sessionID,
+                            address,
+                            throwable);
+                }
+                return null;
+            });
+
+            return gatewayFuture;
+        }), retryStrategy, rpcService.getScheduledExecutor());
     }
 }

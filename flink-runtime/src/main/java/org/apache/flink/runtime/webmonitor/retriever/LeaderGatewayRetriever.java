@@ -50,8 +50,11 @@ public abstract class LeaderGatewayRetriever<T extends RpcGateway> extends Leade
         final CompletableFuture<T> currentGatewayFuture = atomicGatewayFuture.get();
 
         if (currentGatewayFuture.isCompletedExceptionally()) {
+            log.info("currentGatewayFuture exceptionally completed");
+
             try {
                 currentGatewayFuture.get();
+                log.info("currentGatewayFuture OK");
             } catch (ExecutionException | InterruptedException executionException) {
                 String leaderAddress;
 
@@ -84,14 +87,18 @@ public abstract class LeaderGatewayRetriever<T extends RpcGateway> extends Leade
 
             // we couldn't resolve the gateway --> let's try again
             final CompletableFuture<T> newGatewayFuture = createGateway(getLeaderFuture());
+            log.info("Created newGatewayFuture");
 
             // let's check if there was a concurrent createNewFuture call
             if (atomicGatewayFuture.compareAndSet(currentGatewayFuture, newGatewayFuture)) {
+                log.info("compareAndSet true");
                 return newGatewayFuture;
             } else {
+                log.info("compareAndSet false");
                 return atomicGatewayFuture.get();
             }
         } else {
+            log.info("currentGatewayFuture completed");
             return atomicGatewayFuture.get();
         }
     }
@@ -99,6 +106,15 @@ public abstract class LeaderGatewayRetriever<T extends RpcGateway> extends Leade
     @Override
     public void notifyNewLeaderAddress(
             CompletableFuture<Tuple2<String, UUID>> newLeaderAddressFuture) {
+        newLeaderAddressFuture.handle(
+                (result, throwable) -> {
+                    if (result != null) {
+                        log.info("notifyNewLeaderAddress {}@{}", result.f1, result.f0);
+                    } else {
+                        log.info("error occurred while notifying about a new leader.", throwable);
+                    }
+                    return null;
+                });
         final CompletableFuture<T> newGatewayFuture = createGateway(newLeaderAddressFuture);
 
         final CompletableFuture<T> oldGatewayFuture =

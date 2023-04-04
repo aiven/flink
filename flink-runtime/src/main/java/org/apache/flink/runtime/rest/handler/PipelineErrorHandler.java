@@ -21,6 +21,7 @@ package org.apache.flink.runtime.rest.handler;
 import org.apache.flink.runtime.rest.handler.util.HandlerUtils;
 import org.apache.flink.runtime.rest.messages.ErrorResponseBody;
 
+import org.apache.flink.shaded.netty4.io.netty.channel.Channel;
 import org.apache.flink.shaded.netty4.io.netty.channel.ChannelHandler;
 import org.apache.flink.shaded.netty4.io.netty.channel.ChannelHandlerContext;
 import org.apache.flink.shaded.netty4.io.netty.channel.SimpleChannelInboundHandler;
@@ -29,6 +30,7 @@ import org.apache.flink.shaded.netty4.io.netty.handler.codec.http.HttpResponseSt
 
 import org.slf4j.Logger;
 
+import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.Map;
 
@@ -63,6 +65,10 @@ public class PipelineErrorHandler extends SimpleChannelInboundHandler<HttpReques
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         logger.warn("Unhandled exception", cause);
+        Channel channel = ctx.channel();
+        SocketAddress localSocketAddress = channel.localAddress();
+        SocketAddress remoteSocketAddress = channel.remoteAddress();
+        logger.warn("Unhandled, localSocketAddress {}, socketAddress {}", localSocketAddress, remoteSocketAddress);
         HandlerUtils.sendErrorResponse(
                 ctx,
                 false,
