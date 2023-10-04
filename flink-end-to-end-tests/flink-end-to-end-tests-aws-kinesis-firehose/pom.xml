@@ -23,7 +23,7 @@
 	<parent>
 		<artifactId>flink-end-to-end-tests</artifactId>
 		<groupId>org.apache.flink</groupId>
-		<version>1.16.0</version>
+		<version>1.16.2</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -32,7 +32,7 @@
 	<packaging>jar</packaging>
 
 	<properties>
-		<aws.sdk.version>2.17.247</aws.sdk.version>
+		<aws.sdk.version>2.19.14</aws.sdk.version>
 	</properties>
 
 	<dependencyManagement>
