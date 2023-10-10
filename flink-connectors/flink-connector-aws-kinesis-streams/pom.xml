@@ -26,13 +26,13 @@ under the License.
 	<parent>
 		<groupId>org.apache.flink</groupId>
 		<artifactId>flink-connectors</artifactId>
-		<version>1.16.0</version>
+		<version>1.16.2</version>
 	</parent>
 
 	<artifactId>flink-connector-aws-kinesis-streams</artifactId>
 	<name>Flink : Connectors : Amazon Kinesis Data Streams</name>
 	<properties>
-		<aws.sdk.version>2.17.247</aws.sdk.version>
+		<aws.sdk.version>2.19.14</aws.sdk.version>
 	</properties>
 
 	<packaging>jar</packaging>
