@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.flink.streaming.api;
+package org.apache.flink.streaming.api.environment;
 
 import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.functions.FlatMapFunction;
@@ -26,12 +26,14 @@ import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.api.java.typeutils.ResultTypeQueryable;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.ExecutionOptions;
 import org.apache.flink.configuration.PipelineOptions;
+import org.apache.flink.core.testutils.CheckedThread;
+import org.apache.flink.core.testutils.OneShotLatch;
 import org.apache.flink.runtime.clusterframework.types.ResourceProfile;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.DiscardingSink;
 import org.apache.flink.streaming.api.functions.source.FromElementsFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
@@ -44,13 +46,16 @@ import org.apache.flink.types.Row;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.SplittableIterator;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CountDownLatch;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -397,6 +402,99 @@ public class StreamExecutionEnvironmentTest {
         DataStreamSource<Row> source2 = env.addSource(new RowSourceFunction());
         // the source type information should be derived from RowSourceFunction#getProducedType
         assertEquals(new GenericTypeInfo<>(Row.class), source2.getType());
+    }
+
+    @Test
+    public void testBufferTimeoutByDefault() {
+        Configuration config = new Configuration();
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        testBufferTimeout(config, env);
+    }
+
+    @Test
+    public void testBufferTimeoutEnabled() {
+        Configuration config = new Configuration();
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        config.set(ExecutionOptions.BUFFER_TIMEOUT_ENABLED, true);
+        testBufferTimeout(config, env);
+    }
+
+    @Test
+    public void testBufferTimeoutDisabled() {
+        Configuration config = new Configuration();
+        config.set(ExecutionOptions.BUFFER_TIMEOUT_ENABLED, false);
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
+        // The execution.buffer-timeout's default value 100ms will not take effect.
+        env.configure(config, this.getClass().getClassLoader());
+        assertEquals(ExecutionOptions.DISABLED_NETWORK_BUFFER_TIMEOUT, env.getBufferTimeout());
+
+        // Setting execution.buffer-timeout's to 0ms will not take effect.
+        config.setString(ExecutionOptions.BUFFER_TIMEOUT.key(), "0ms");
+        env.configure(config, this.getClass().getClassLoader());
+        assertEquals(ExecutionOptions.DISABLED_NETWORK_BUFFER_TIMEOUT, env.getBufferTimeout());
+
+        // Setting execution.buffer-timeout's to -1ms will not take effect.
+        config.setString(ExecutionOptions.BUFFER_TIMEOUT.key(), "-1ms");
+        env.configure(config, this.getClass().getClassLoader());
+        assertEquals(ExecutionOptions.DISABLED_NETWORK_BUFFER_TIMEOUT, env.getBufferTimeout());
+    }
+
+    private void testBufferTimeout(Configuration config, StreamExecutionEnvironment env) {
+        env.configure(config, this.getClass().getClassLoader());
+        assertEquals(
+                ExecutionOptions.BUFFER_TIMEOUT.defaultValue().toMillis(), env.getBufferTimeout());
+
+        config.setString(ExecutionOptions.BUFFER_TIMEOUT.key(), "0ms");
+        env.configure(config, this.getClass().getClassLoader());
+        assertEquals(0, env.getBufferTimeout());
+
+        try {
+            config.setString(ExecutionOptions.BUFFER_TIMEOUT.key(), "-1ms");
+            env.configure(config, this.getClass().getClassLoader());
+            fail("exception expected");
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Test
+    public void testConcurrentSetContext() throws Exception {
+        int numThreads = 20;
+        final CountDownLatch waitingThreadCount = new CountDownLatch(numThreads);
+        final OneShotLatch latch = new OneShotLatch();
+        final List<CheckedThread> threads = new ArrayList<>();
+        for (int x = 0; x < numThreads; x++) {
+            final CheckedThread thread =
+                    new CheckedThread() {
+                        @Override
+                        public void go() throws InterruptedException {
+                            final StreamExecutionEnvironment preparedEnvironment =
+                                    new StreamExecutionEnvironment();
+                            StreamExecutionEnvironment.initializeContextEnvironment(
+                                    configuration -> preparedEnvironment);
+                            try {
+                                waitingThreadCount.countDown();
+                                latch.await();
+                                Assertions.assertThat(
+                                                StreamExecutionEnvironment
+                                                        .getExecutionEnvironment())
+                                        .isSameAs(preparedEnvironment);
+                            } finally {
+                                StreamExecutionEnvironment.resetContextEnvironment();
+                            }
+                        }
+                    };
+            thread.start();
+            threads.add(thread);
+        }
+
+        // wait for all threads to be ready and trigger the job submissions at the same time
+        waitingThreadCount.await();
+        latch.trigger();
+
+        for (CheckedThread thread : threads) {
+            thread.sync();
+        }
     }
 
     /////////////////////////////////////////////////////////////

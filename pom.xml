@@ -28,7 +28,7 @@ under the License.
 
 	<groupId>org.apache.flink</groupId>
 	<artifactId>flink-parent</artifactId>
-	<version>1.16-SNAPSHOT</version>
+	<version>1.16.3</version>
 
 	<name>Flink : </name>
 	<packaging>pom</packaging>
@@ -175,7 +175,7 @@ under the License.
 			For Hadoop 2.7, the minor Hadoop version supported for flink-shaded-hadoop-2-uber is 2.7.5
 		-->
 		<hivemetastore.hadoop.version>2.7.5</hivemetastore.hadoop.version>
-		<japicmp.referenceVersion>1.16.0</japicmp.referenceVersion>
+		<japicmp.referenceVersion>1.16.2</japicmp.referenceVersion>
 		<japicmp.outputDir>tools/japicmp-output</japicmp.outputDir>
 		<spotless.version>2.13.0</spotless.version>
 		<spotless.scalafmt.version>3.4.3</spotless.scalafmt.version>
@@ -1321,12 +1321,14 @@ under the License.
 								</goals>
 								<configuration>
 									<rules>
+										<!-- versions for certain build tools are enforced to match the CI setup -->
+										<!-- the rules below should stay in sync with Flink Release wiki documentation and the CI scripts -->
 										<requireMavenVersion>
 											<!-- maven version must be lower than 3.3. See FLINK-3158 -->
 											<version>(,3.3)</version>
 										</requireMavenVersion>
 										<requireJavaVersion>
-											<version>1.8.0</version>
+											<version>[1.8.0,1.8.1)</version>
 										</requireJavaVersion>
 									</rules>
 								</configuration>
