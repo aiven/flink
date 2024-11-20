@@ -16,15 +16,15 @@
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-jdbc</artifactId>
-            <version>3.1.2-1.18</version>
+            <version>3.2.0-1.19</version>
         </dependency>
 
         <!-- Take versions from https://github.com/apache/flink-connector-jdbc/blob/main/flink-connector-jdbc/pom.xml
-        at the correct commit -->
+        at the branch that corresponds to the connector version -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.5.1</version>
+            <version>42.7.3</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
